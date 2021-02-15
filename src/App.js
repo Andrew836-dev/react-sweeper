@@ -2,30 +2,31 @@ import { useState, useEffect, useCallback } from "react";
 function App() {
   const [gridOptions, setGridOptions] = useState({ bombs: 10, dimensions: [10, 10] });
   const [grid, setGrid] = useState([]);
-  const [inProgress, setProgress] = useState(false);
+  const [inProgress, setInProgress] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
 
-  const createEmptyGrid = useCallback((gridDimensions) => Array.from("0".repeat(gridDimensions[0] * gridDimensions[1])).map(() => ({ revealed: false, value: 0 })), []);
+  const createEmptyGrid = useCallback(([gridWidth, gridHeight]) => Array.from("0".repeat(gridWidth * gridHeight)).map(() => ({ revealed: false, value: 0 })), []);
 
   function createGrid(clickedSquare) {
     const { dimensions: gridSizes, bombs: bombQuantity } = gridOptions;
-    const grid = createEmptyGrid(gridSizes);
+    const newGrid = createEmptyGrid(gridSizes);
+    const [gridWidth, gridHeight] = gridSizes;
 
-    randomBombLocationsExcluding(bombQuantity, gridSizes[0] * gridSizes[1], clickedSquare).forEach(bomb => grid[bomb].value = -1);
+    randomBombLocationsExcluding(bombQuantity, gridWidth * gridHeight, clickedSquare).forEach(bombLocation => newGrid[bombLocation].value = -1);
 
-    grid.forEach((square, i) => {
+    newGrid.forEach((square, i) => {
       if (square.value < 0) return;
-      grid[i].value = countBombsAround(i, gridSizes, grid);
+      newGrid[i].value = countBombsAround(i, gridWidth, newGrid);
     });
-    revealSquare(clickedSquare, grid)
-    setProgress(() => true);
+    return newGrid;
   }
 
 
-  function countBombsAround(square, gridSizes, gridArray) {
-    return getSquaresAround(square, gridSizes, gridArray).reduce((prev, curr) => (gridArray[curr].value < 0 ? prev + 1 : prev), 0);
+  function countBombsAround(square, gridWidth, gridArray) {
+    return getSquaresAround(square, gridWidth, gridArray).reduce((prev, curr) => (gridArray[curr].value < 0 ? prev + 1 : prev), 0);
   }
 
-  function getSquaresAround(square, [gridWidth], gridArray) {
+  function getSquaresAround(square, gridWidth, gridArray) {
     const output = [];
     const offsets = [-1, 0, 1];
     offsets.forEach(offsetY => {
@@ -70,9 +71,14 @@ function App() {
     }
   }
 
-  function handleGridClick(clickedSquare, inProgress) {
+  function startGame(clickedSquare) {
+    revealSquare(clickedSquare, createGrid(clickedSquare));
+    setInProgress(() => true);
+  }
+
+  function handleGridClick(clickedSquare, inProgress, grid) {
     if (!inProgress) {
-      createGrid(clickedSquare);
+      startGame(clickedSquare);
     } else {
       revealSquare(clickedSquare, grid);
     }
@@ -95,26 +101,52 @@ function App() {
   function chainReveal(originSquare, grid) {
     const safeSquares = [originSquare]
     grid[originSquare].revealed = true;
-    const squaresToCheck = getSquaresAround(originSquare, gridOptions.dimensions, grid);
+    const squaresToCheck = getSquaresAround(originSquare, gridOptions.dimensions[0], grid);
     while (squaresToCheck.length) {
       const nextSquare = squaresToCheck.pop();
       if (safeSquares.includes(nextSquare) || grid[nextSquare].revealed) continue;
-      if (grid[nextSquare].value === 0) getSquaresAround(nextSquare, gridOptions.dimensions, grid).forEach(newSquare => squaresToCheck.push(newSquare));
+      if (grid[nextSquare].value === 0) getSquaresAround(nextSquare, gridOptions.dimensions[0], grid).forEach(newSquare => squaresToCheck.push(newSquare));
       grid[nextSquare].revealed = true;
       safeSquares.push(nextSquare);
     }
     return safeSquares;
   }
-
   function gameOver(clickedSquare) {
     setGrid(prevGrid => prevGrid.map((square, i) => square.value < 0 ? (i === clickedSquare ? { value: -2, revealed: true } : { ...square, revealed: true }) : square));
-    setProgress(false);
+    setInProgress(() => false);
+    setIsGameOver(() => true);
   }
 
   useEffect(() => {
     setGrid(createEmptyGrid(gridOptions.dimensions));
-    setProgress(false);
+    setInProgress(false);
+    setIsGameOver(false);
   }, [createEmptyGrid, gridOptions]);
+
+  const gridContainerStyle = {
+    display: "flex", flexWrap: "wrap", width: `${gridOptions.dimensions[0] * 20}px`, height: `${gridOptions.dimensions[1] * 20}px`
+  }
+
+  const gridButtonStyle = {
+    minWidth: "20px",
+    minHeight: "20px",
+    width: `${100 / gridOptions.dimensions[0]}%`,
+    height: `${100 / gridOptions.dimensions[1]}%`,
+    padding: "0",
+    boxSizing: "border-box",
+    textAlign: "center"
+  }
+
+  const colorChart = {
+    unrevealed: "lightgray",
+    "-2": "red",
+    "-1": "lightgray",
+    "0": "limegreen",
+    "1": "yellow",
+    "2": "green",
+    "3": "blue",
+    "4": "purple"
+  }
 
   return (
     <div className="App">
@@ -126,16 +158,19 @@ function App() {
       <select name="gridSize" onChange={handleOptionsChange}>
         <option value="10x10">10x10</option>
         <option value="20x10">20x10</option>
+        <option value="40x10">40x10</option>
       </select>
-      <div style={{ width: `${gridOptions.dimensions[0] * 20}px`, height: `${gridOptions.dimensions[1] * 20}px`, display: "flex", flexWrap: "wrap" }}>
-        {grid.length > 0 && grid.map((square, i) => (
-          <div
-            key={i}
-            style={{ backgroundColor: square.revealed && square.value === -2 ? "red" : "", minWidth: "20px", minHeight: "20px", width: `${100 / gridOptions.dimensions[0]}%`, height: `${100 / gridOptions.dimensions[1]}%`, border: "black 1px solid", boxSizing: "border-box", textAlign: "center" }}
-            onClick={() => handleGridClick(i, inProgress)}
+      <div style={gridContainerStyle}>
+        {grid.length > 0 && grid.map((squareData, squareIndex, grid) => (
+          <button
+            key={squareIndex}
+            className={!squareData.revealed ? "unrevealed" : `revealed${squareData.value > 0 ? ` ${squareData.value}` : squareData.value === -2 ? " bomb" : ""}`}
+            style={{ ...gridButtonStyle, backgroundColor: squareData.revealed ? colorChart[squareData.value] : colorChart.unrevealed, border: squareData.revealed ? "1px solid gray" : "2px outset white" }}
+            onClick={() => handleGridClick(squareIndex, inProgress, grid)}
+            disabled={isGameOver}
           >
-            {square.revealed && (square.value < 0 ? "*" : square.value)}
-          </div>)
+            {squareData.revealed && (squareData.value < 0 ? "*" : (squareData.value > 0 ? squareData.value : ""))}
+          </button>)
         )}</div>
     </div>
   );
