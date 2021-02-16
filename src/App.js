@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import "./sweeper.css";
+
 function App() {
   const [gridOptions, setGridOptions] = useState({ bombs: 10, dimensions: [10, 10] });
   const [grid, setGrid] = useState([]);
@@ -111,6 +113,13 @@ function App() {
     }
     return safeSquares;
   }
+
+  function resetGame() {
+    setGrid(() => createEmptyGrid(gridOptions.dimensions));
+    setInProgress(() => false);
+    setIsGameOver(() => false);
+  }
+
   function gameOver(clickedSquare) {
     setGrid(prevGrid => prevGrid.map((square, i) => square.value < 0 ? (i === clickedSquare ? { value: -2, revealed: true } : { ...square, revealed: true }) : square));
     setInProgress(() => false);
@@ -123,30 +132,30 @@ function App() {
     setIsGameOver(false);
   }, [createEmptyGrid, gridOptions]);
 
-  const gridContainerStyle = {
-    display: "flex", flexWrap: "wrap", width: `${gridOptions.dimensions[0] * 20}px`, height: `${gridOptions.dimensions[1] * 20}px`
-  }
+  // const gridContainerStyle = {
+  //   width: `${gridOptions.dimensions[0] * 20}px`, height: `${gridOptions.dimensions[1] * 20}px`
+  // }
 
-  const gridButtonStyle = {
-    minWidth: "20px",
-    minHeight: "20px",
-    width: `${100 / gridOptions.dimensions[0]}%`,
-    height: `${100 / gridOptions.dimensions[1]}%`,
-    padding: "0",
-    boxSizing: "border-box",
-    textAlign: "center"
-  }
+  // const gridButtonStyle = {
+  //   minWidth: "20px",
+  //   minHeight: "20px",
+  //   width: `${100 / gridOptions.dimensions[0]}%`,
+  //   height: `${100 / gridOptions.dimensions[1]}%`,
+  //   padding: "0",
+  //   boxSizing: "border-box",
+  //   textAlign: "center"
+  // }
 
-  const colorChart = {
-    unrevealed: "lightgray",
-    "-2": "red",
-    "-1": "lightgray",
-    "0": "limegreen",
-    "1": "yellow",
-    "2": "green",
-    "3": "blue",
-    "4": "purple"
-  }
+  // const colorChart = {
+  //   unrevealed: "lightgray",
+  //   "-2": "red",
+  //   "-1": "lightgray",
+  //   "0": "limegreen",
+  //   "1": "yellow",
+  //   "2": "green",
+  //   "3": "blue",
+  //   "4": "purple"
+  // }
 
   return (
     <div className="App">
@@ -160,18 +169,25 @@ function App() {
         <option value="20x10">20x10</option>
         <option value="40x10">40x10</option>
       </select>
-      <div style={gridContainerStyle}>
-        {grid.length > 0 && grid.map((squareData, squareIndex, grid) => (
-          <button
-            key={squareIndex}
-            className={!squareData.revealed ? "unrevealed" : `revealed${squareData.value > 0 ? ` ${squareData.value}` : squareData.value === -2 ? " bomb" : ""}`}
-            style={{ ...gridButtonStyle, backgroundColor: squareData.revealed ? colorChart[squareData.value] : colorChart.unrevealed, border: squareData.revealed ? "1px solid gray" : "2px outset white" }}
-            onClick={() => handleGridClick(squareIndex, inProgress, grid)}
-            disabled={isGameOver}
-          >
-            {squareData.revealed && (squareData.value < 0 ? "*" : (squareData.value > 0 ? squareData.value : ""))}
-          </button>)
-        )}</div>
+      <button onClick={resetGame}>Reset</button>
+      <div className="gridContainer">
+        {grid.length > 0 &&
+          Array.from(" ".repeat(gridOptions.dimensions[1])).map((row, rowIndex) => (
+            <div key={`row${rowIndex}`} className="row">
+              {
+                grid.slice(rowIndex * gridOptions.dimensions[0], (rowIndex + 1) * gridOptions.dimensions[0]).map((squareData, squareIndex) => (
+                  <button
+                    key={`row${rowIndex} column${squareIndex}`}
+                    className={`${squareData.revealed ? `${squareData.value === -1 ? "" : `${squareData.value === -2 ? "bomb" : `nearby-${squareData.value}`} revealed`}` : ""}`}
+                    onClick={() => handleGridClick((squareIndex + (rowIndex*gridOptions.dimensions[0])), inProgress, grid)}
+                    disabled={isGameOver}
+                  >
+                    {squareData.revealed && (squareData.value < 0 ? "*" : (squareData.value > 0 ? squareData.value : ""))}
+                  </button>)
+                )}
+            </div>)
+          )}
+      </div>
     </div>
   );
 }
