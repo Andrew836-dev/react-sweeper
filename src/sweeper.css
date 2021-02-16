@@ -1,0 +1,63 @@
+/* .x-2-percent {
+  width: 2%;
+}
+
+.x-5-percent {
+  width: 5%;
+}
+
+.x-10-percent {
+  width: 10%;
+}
+
+.y-10-percent {
+  height : 10%;
+} */
+
+.gridContainer button {
+  padding: 0px;
+  min-width: 20px;
+  min-height: 20px;
+  font-weight: bolder;
+  border: 2px white outset;
+  background-color: darkgray;
+}
+
+.bomb {
+  background-color: red !important;
+}
+
+.nearby-0 {
+  background-color: springgreen !important;
+}
+
+.nearby-1 {
+  background-color: cyan !important;
+}
+
+.nearby-2 {
+  background-color: skyblue !important;
+}
+
+.nearby-3 {
+  background-color: bisque !important;
+}
+.nearby-4 {
+  background-color: yellow !important;
+}
+
+.revealed {
+  border: 1px gray solid !important;
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.gridContainer {
+  flex-direction: column;
+  display: flex;
+  max-width: 100vw;
+  line-height: 0%;
+}
