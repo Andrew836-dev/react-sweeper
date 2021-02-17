@@ -69,8 +69,10 @@ function App() {
         setGridOptions({ dimensions: [15, 15], bombs: 64 });
         break;
       case "Easy":
-      default:
         setGridOptions({ dimensions: [8, 8], bombs: 10 })
+        break;
+      default:
+        setDifficulty("Easy");
     }
   }
 
@@ -86,6 +88,7 @@ function App() {
         break;
       case "difficulty":
         setDifficulty(value);
+        break;
       default:
         break;
     }
