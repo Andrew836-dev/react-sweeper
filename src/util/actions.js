@@ -1,0 +1,12 @@
+export const EASY = "EASY";
+export const MEDIUM = "MEDIUM";
+export const HARD = "HARD";
+export const DIFFICULTY = "DIFFICULTY";
+export const RESET = "RESET";
+export const CLICK_SQUARE = "CLICK_SQUARE";
+export const MARK_SQUARE = "MARK_SQUARE";
+export const UPDATE_GRID = "UPDATE_GRID";
+export const GAME_OVER = "GAME_OVER";
+export const GAME_WON = "GAME_WON";
+export const UPDATE_PROGRESS = "UPDATE_PROGRESS";
+export const NEW_GAME = "NEW_GAME";
