@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "/react-sweeper/static/css/main.3e991e6d.chunk.css",
+    "main.js": "/react-sweeper/static/js/main.eb9b36b2.chunk.js",
+    "main.js.map": "/react-sweeper/static/js/main.eb9b36b2.chunk.js.map",
+    "runtime-main.js": "/react-sweeper/static/js/runtime-main.65142c54.js",
+    "runtime-main.js.map": "/react-sweeper/static/js/runtime-main.65142c54.js.map",
+    "static/js/2.97444db9.chunk.js": "/react-sweeper/static/js/2.97444db9.chunk.js",
+    "static/js/2.97444db9.chunk.js.map": "/react-sweeper/static/js/2.97444db9.chunk.js.map",
+    "static/js/3.5703dc47.chunk.js": "/react-sweeper/static/js/3.5703dc47.chunk.js",
+    "static/js/3.5703dc47.chunk.js.map": "/react-sweeper/static/js/3.5703dc47.chunk.js.map",
+    "index.html": "/react-sweeper/index.html",
+    "static/css/main.3e991e6d.chunk.css.map": "/react-sweeper/static/css/main.3e991e6d.chunk.css.map",
+    "static/js/2.97444db9.chunk.js.LICENSE.txt": "/react-sweeper/static/js/2.97444db9.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.65142c54.js",
+    "static/js/2.97444db9.chunk.js",
+    "static/css/main.3e991e6d.chunk.css",
+    "static/js/main.eb9b36b2.chunk.js"
+  ]
+}
