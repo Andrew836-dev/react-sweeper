@@ -13,7 +13,7 @@
   line-height: 0%;
 }
 
-.gridContainer button {
+.gridSquare {
   padding: 0px;
   min-width: 20px;
   min-height: 20px;
