@@ -1,34 +1,37 @@
-/* .x-2-percent {
-  width: 2%;
+.gridContainer button:disabled {
+  color: unset;
 }
 
-.x-5-percent {
-  width: 5%;
+.row {
+  display: flex;
+  flex-direction: row;
 }
 
-.x-10-percent {
-  width: 10%;
+.gridContainer {
+  flex-direction: column;
+  display: flex;
+  max-width: 100vw;
+  line-height: 0%;
 }
-
-.y-10-percent {
-  height : 10%;
-} */
 
 .gridContainer button {
   padding: 0px;
   min-width: 20px;
   min-height: 20px;
   font-weight: bolder;
-  border: 2px white outset;
+  border: 2px lightgray outset;
   background-color: darkgray;
 }
 
-.bomb {
+.correct {
+  background-color: lightgreen !important;
+}
+.bomb, .incorrect {
   background-color: red !important;
 }
 
 .nearby-0 {
-  background-color: springgreen !important;
+  background-color: lightgray !important;
 }
 
 .nearby-1 {
@@ -42,22 +45,10 @@
 .nearby-3 {
   background-color: bisque !important;
 }
-.nearby-4 {
+.nearby-4, .nearby-5, .nearby-6, .nearby-7, .nearby-8 {
   background-color: yellow !important;
 }
 
 .revealed {
   border: 1px gray solid !important;
-}
-
-.row {
-  display: flex;
-  flex-direction: row;
-}
-
-.gridContainer {
-  flex-direction: column;
-  display: flex;
-  max-width: 100vw;
-  line-height: 0%;
 }

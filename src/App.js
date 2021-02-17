@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import "./sweeper.css";
 
 function App() {
-  const [gridOptions, setGridOptions] = useState({ bombs: 10, dimensions: [10, 10] });
+  const [gridOptions, setGridOptions] = useState({ bombs: 10, dimensions: [8, 8] });
   const [grid, setGrid] = useState([]);
-  const [inProgress, setInProgress] = useState(false);
-  const [isGameOver, setIsGameOver] = useState(false);
+  const [gameStatus, setGameStatus] = useState({ inProgress: false, isGameOver: false });
+  const bomb = "*";
+  const marker = "M";
+  const question = "?";
 
-  const createEmptyGrid = useCallback(([gridWidth, gridHeight]) => Array.from("0".repeat(gridWidth * gridHeight)).map(() => ({ revealed: false, value: 0 })), []);
+  const createEmptyGrid = useCallback(([gridWidth, gridHeight]) => Array.from("0".repeat(gridWidth * gridHeight)).map(() => ({ revealed: false, value: 0, marked: 0 })), []);
 
   function createGrid(clickedSquare) {
     const { dimensions: gridSizes, bombs: bombQuantity } = gridOptions;
@@ -58,6 +60,20 @@ function App() {
     return locations;
   }
 
+  function setDifficulty(difficulty) {
+    switch (difficulty) {
+      case "Hard":
+        setGridOptions({ dimensions: [30, 15], bombs: 100 });
+        break;
+      case "Medium":
+        setGridOptions({ dimensions: [15, 15], bombs: 64 });
+        break;
+      case "Easy":
+      default:
+        setGridOptions({ dimensions: [8, 8], bombs: 10 })
+    }
+  }
+
   function handleOptionsChange(event) {
     event.preventDefault();
     const { name, value } = event.target;
@@ -68,6 +84,8 @@ function App() {
       case "gridSize":
         setGridOptions(prevOptions => ({ ...prevOptions, dimensions: value.split("x").map(character => parseInt(character)) }));
         break;
+      case "difficulty":
+        setDifficulty(value);
       default:
         break;
     }
@@ -75,10 +93,15 @@ function App() {
 
   function startGame(clickedSquare) {
     revealSquare(clickedSquare, createGrid(clickedSquare));
-    setInProgress(() => true);
+    setGameStatus(prevStatus => ({ ...prevStatus, inProgress: true }));
   }
 
-  function handleGridClick(clickedSquare, inProgress, grid) {
+  function handleGridRightClick(event, clickedSquare, { inProgress, isGameOver }, grid) {
+    event.preventDefault();
+    if (!isGameOver && inProgress) markSquare(clickedSquare, grid);
+  }
+
+  function handleGridClick(clickedSquare, { inProgress }, grid) {
     if (!inProgress) {
       startGame(clickedSquare);
     } else {
@@ -86,8 +109,15 @@ function App() {
     }
   }
 
+  function markSquare(clickedSquare) {
+    if (grid[clickedSquare].revealed) return;
+    const newMarking = grid[clickedSquare].marked + 1;
+    setGrid(prevGrid => prevGrid.map((square, squareIndex) => squareIndex === clickedSquare ? { ...square, marked: newMarking < 3 ? newMarking : 0 } : square));
+  }
+
   function revealSquare(clickedSquare, grid) {
     if (grid[clickedSquare].revealed) return;
+    if (grid[clickedSquare].marked === 1) return;
     switch (grid[clickedSquare].value) {
       case 0:
         const safeSquares = chainReveal(clickedSquare, Array.from(grid));
@@ -106,7 +136,7 @@ function App() {
     const squaresToCheck = getSquaresAround(originSquare, gridOptions.dimensions[0], grid);
     while (squaresToCheck.length) {
       const nextSquare = squaresToCheck.pop();
-      if (safeSquares.includes(nextSquare) || grid[nextSquare].revealed) continue;
+      if (safeSquares.includes(nextSquare) || grid[nextSquare].revealed || grid[nextSquare].marked > 0) continue;
       if (grid[nextSquare].value === 0) getSquaresAround(nextSquare, gridOptions.dimensions[0], grid).forEach(newSquare => squaresToCheck.push(newSquare));
       grid[nextSquare].revealed = true;
       safeSquares.push(nextSquare);
@@ -116,77 +146,46 @@ function App() {
 
   function resetGame() {
     setGrid(() => createEmptyGrid(gridOptions.dimensions));
-    setInProgress(() => false);
-    setIsGameOver(() => false);
+    setGameStatus(prevStatus => ({ ...prevStatus, inProgress: false, isGameOver: false }));
   }
 
   function gameOver(clickedSquare) {
-    setGrid(prevGrid => prevGrid.map((square, i) => square.value < 0 ? (i === clickedSquare ? { value: -2, revealed: true } : { ...square, revealed: true }) : square));
-    setInProgress(() => false);
-    setIsGameOver(() => true);
+    setGrid(prevGrid => prevGrid.map((square, i) => square.value < 0 ? (i === clickedSquare ? { ...square, value: -2, revealed: true } : { ...square, revealed: true }) : square));
+    setGameStatus(prevStatus => ({ ...prevStatus, inProgress: false, isGameOver: true }));
   }
 
   useEffect(() => {
     setGrid(createEmptyGrid(gridOptions.dimensions));
-    setInProgress(false);
-    setIsGameOver(false);
   }, [createEmptyGrid, gridOptions]);
-
-  // const gridContainerStyle = {
-  //   width: `${gridOptions.dimensions[0] * 20}px`, height: `${gridOptions.dimensions[1] * 20}px`
-  // }
-
-  // const gridButtonStyle = {
-  //   minWidth: "20px",
-  //   minHeight: "20px",
-  //   width: `${100 / gridOptions.dimensions[0]}%`,
-  //   height: `${100 / gridOptions.dimensions[1]}%`,
-  //   padding: "0",
-  //   boxSizing: "border-box",
-  //   textAlign: "center"
-  // }
-
-  // const colorChart = {
-  //   unrevealed: "lightgray",
-  //   "-2": "red",
-  //   "-1": "lightgray",
-  //   "0": "limegreen",
-  //   "1": "yellow",
-  //   "2": "green",
-  //   "3": "blue",
-  //   "4": "purple"
-  // }
 
   return (
     <div className="App">
-      <select name="bombs" onChange={handleOptionsChange}>
-        <option value="10">10</option>
-        <option value="20">20</option>
-        <option value="99">99</option>
-      </select>
-      <select name="gridSize" onChange={handleOptionsChange}>
-        <option value="10x10">10x10</option>
-        <option value="20x10">20x10</option>
-        <option value="40x10">40x10</option>
+      <select name="difficulty" onChange={handleOptionsChange}>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
       </select>
       <button onClick={resetGame}>Reset</button>
       <div className="gridContainer">
-        {grid.length > 0 &&
-          Array.from(" ".repeat(gridOptions.dimensions[1])).map((row, rowIndex) => (
-            <div key={`row${rowIndex}`} className="row">
-              {
-                grid.slice(rowIndex * gridOptions.dimensions[0], (rowIndex + 1) * gridOptions.dimensions[0]).map((squareData, squareIndex) => (
-                  <button
-                    key={`row${rowIndex} column${squareIndex}`}
-                    className={`${squareData.revealed ? `${squareData.value === -1 ? "" : `${squareData.value === -2 ? "bomb" : `nearby-${squareData.value}`} revealed`}` : ""}`}
-                    onClick={() => handleGridClick((squareIndex + (rowIndex*gridOptions.dimensions[0])), inProgress, grid)}
-                    disabled={isGameOver}
-                  >
-                    {squareData.revealed && (squareData.value < 0 ? "*" : (squareData.value > 0 ? squareData.value : ""))}
-                  </button>)
-                )}
-            </div>)
-          )}
+        {grid.length > 0 && Array.from(" ".repeat(gridOptions.dimensions[1])).map((_row, rowIndex) => (
+          <div key={`row${rowIndex}`} className="row">
+            {grid.slice(rowIndex * gridOptions.dimensions[0], (rowIndex + 1) * gridOptions.dimensions[0])
+              .map((squareData, squareIndex) => (
+                <button
+                  key={`row${rowIndex} column${squareIndex}`}
+                  className={`${squareData.revealed ? `${squareData.value === -1 ? `${gameStatus.isGameOver && squareData.marked > 0 && squareData.value < 0 && "correct"}` : `${squareData.value === -2 ? "bomb" : `nearby-${squareData.value}`} revealed`}` : `${gameStatus.isGameOver && squareData.marked > 0 && "incorrect"}`}`}
+                  onContextMenu={(event) => handleGridRightClick(event, (squareIndex + (rowIndex * gridOptions.dimensions[0])), gameStatus, grid)}
+                  onClick={() => handleGridClick((squareIndex + (rowIndex * gridOptions.dimensions[0])), gameStatus, grid)}
+                  disabled={gameStatus.isGameOver}
+                  value={squareIndex + rowIndex * gridOptions.dimensions[0]}
+                >
+                  {squareData.revealed && squareData.value > 0 && squareData.value}
+                  {squareData.revealed && squareData.value < 0 && (squareData.marked === 0 ? bomb : marker)}
+                  {!squareData.revealed && (squareData.marked > 0 && (squareData.marked === 1 ? marker : question))}
+                </button>
+              ))}
+          </div>)
+        )}
       </div>
     </div>
   );
