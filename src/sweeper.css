@@ -10,7 +10,6 @@
 .gridContainer {
   flex-direction: column;
   display: flex;
-  max-width: 100vw;
   line-height: 0%;
 }
 
